@@ -156,9 +156,21 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
         position:fixed;bottom:20px;
         opacity:0;animation:pageIn .7s ease forwards;animation-delay:.5s}
 @keyframes pageIn{to{opacity:1}}
+
+/* Page-exit veil — fades to dark on card click */
+#page-veil{
+  position:fixed;inset:0;z-index:1000;
+  background:#0a0b10;
+  opacity:0;pointer-events:none;
+  transition:opacity .55s ease;
+}
+#page-veil.active{ opacity:1; }
 </style>
 </head>
 <body>
+
+<!-- Page-exit dark veil -->
+<div id="page-veil"></div>
 
 <!-- Persistent white underlay — covers dark landing page until fully revealed -->
 <div id="bg-white"></div>
@@ -203,6 +215,20 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 <span class="credit">張立群建築師事務所 ｜ CLUSTER & Associates · All Rights Reserved</span>
 
 <audio id="taiko-sfx" src="taiko.mp3" preload="auto"></audio>
+
+<script>
+(function(){
+  var veil = document.getElementById('page-veil');
+  document.querySelectorAll('.card').forEach(function(card){
+    card.addEventListener('click', function(e){
+      e.preventDefault();
+      var href = card.getAttribute('href');
+      veil.classList.add('active');
+      setTimeout(function(){ window.location.href = href; }, 600);
+    });
+  });
+})();
+</script>
 
 <script>
 (function(){
