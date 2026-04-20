@@ -282,9 +282,10 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 (function(){
   var veil = document.getElementById('page-veil');
 
-  // Reset veil when browser restores page from bfcache (back button)
+  // Reset veil + re-check rotation prompt on bfcache restore (back button)
   window.addEventListener('pageshow', function(){
     veil.classList.remove('active');
+    checkOrient();
   });
 
   document.querySelectorAll('.card').forEach(function(card){
@@ -324,10 +325,14 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
     if(fired) return;
     fired = true;
 
-    // Enter fullscreen (must be synchronous with user gesture)
+    // Enter fullscreen — hide nav UI where supported
     var el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen().catch(function(){});
+    if (el.requestFullscreen) el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    // Lock landscape on Android
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(function(){});
+    }
 
     // Drum fires immediately on click
     sfx.currentTime = 0;
