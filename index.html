@@ -219,6 +219,12 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 <script>
 (function(){
   var veil = document.getElementById('page-veil');
+
+  // Reset veil when browser restores page from bfcache (back button)
+  window.addEventListener('pageshow', function(){
+    veil.classList.remove('active');
+  });
+
   document.querySelectorAll('.card').forEach(function(card){
     card.addEventListener('click', function(e){
       e.preventDefault();
