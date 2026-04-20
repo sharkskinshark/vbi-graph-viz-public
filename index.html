@@ -92,37 +92,38 @@
 @keyframes splashIn{ to{opacity:1} }
 
 #splash-logo{
-  display:flex;flex-direction:column;align-items:center;gap:10px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
   transform-origin:center center;
 }
+/* zoom OUT — text shrinks + fades, recedes into distance */
 #splash-logo.zoom-out{
-  animation:logoZoom 1.5s cubic-bezier(.22,0,.9,1) forwards;
+  animation:logoZoomOut 1.6s cubic-bezier(.4,0,.8,1) forwards;
 }
-@keyframes logoZoom{
+@keyframes logoZoomOut{
   0%  {opacity:1;transform:scale(1)}
-  55% {opacity:.5;transform:scale(4.5)}
-  100%{opacity:0;transform:scale(13)}
+  40% {opacity:.7;transform:scale(.65)}
+  100%{opacity:0;transform:scale(.22)}
 }
 
 .splash-main{
   font-family:'Helvetica Neue',Arial,sans-serif;
-  font-size:clamp(30px,4.5vw,60px);
+  font-size:clamp(15px,2.2vw,30px);
   font-weight:700;letter-spacing:.02em;color:#111;
-  opacity:0;animation:textIn .45s ease forwards;animation-delay:.35s;
+  opacity:0;animation:textIn .5s ease forwards;animation-delay:.3s;
 }
 .splash-sub{
   font-family:'Noto Sans TC','Noto Sans SC',system-ui,sans-serif;
-  font-size:clamp(10px,1.3vw,15px);
+  font-size:clamp(6px,.7vw,9px);
   font-weight:400;letter-spacing:.06em;color:#444;
-  opacity:0;animation:textIn .45s ease forwards;animation-delay:.6s;
+  opacity:0;animation:textIn .5s ease forwards;animation-delay:.55s;
 }
 @keyframes textIn{
-  from{opacity:0;transform:translateY(5px)}
+  from{opacity:0;transform:translateY(4px)}
   to  {opacity:1;transform:translateY(0)}
 }
 
-/* White bg fades out after drum hit */
-#splash.fade-out{ animation:splashOut .75s ease forwards; }
+/* White bg slow fade to transparent → reveals dark page */
+#splash.fade-out{ animation:splashOut 1.4s ease forwards; }
 @keyframes splashOut{ to{opacity:0;pointer-events:none} }
 
 /* ══════════════════════════════════════
@@ -222,16 +223,16 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
     // Phase 1: splash (white) already visible — logo fades in
     splash.classList.add('fade-in');
 
-    // Phase 2: after logo text has settled, start silent zoom
+    // Phase 2: logo text settled → zoom out + fade
     setTimeout(function(){
       logo.classList.add('zoom-out');
 
-      // Phase 3: logo gone → full white → fade to dark page
+      // Phase 3: logo fully gone → white bg slowly fades to reveal dark page
       setTimeout(function(){
         splash.classList.remove('fade-in');
         splash.classList.add('fade-out');
-        setTimeout(function(){ splash.remove(); }, 800);
-      }, 1450);
+        setTimeout(function(){ splash.remove(); }, 1500);
+      }, 1600);
 
     }, 900);
   });
