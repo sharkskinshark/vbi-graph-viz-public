@@ -42,19 +42,30 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:10px;
   cursor:pointer;
+  transition:opacity .7s ease;
+}
+#intro.bg-out{ opacity:0; pointer-events:none; }
+
+/* Logo wrapper — zooms on click */
+#intro-logo{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
   transform-origin:center center;
 }
-#intro.playing{
-  animation:introAnim 3.2s cubic-bezier(.4,0,.2,1) forwards;
-  pointer-events:none;
+#intro-logo.zoom{
+  animation:logoZoom 1.6s cubic-bezier(.4,0,1,1) forwards;
 }
+@keyframes logoZoom{
+  0%  { opacity:1; transform:scale(1)  }
+  60% { opacity:.6; transform:scale(5) }
+  100%{ opacity:0; transform:scale(14) }
+}
+
 .intro-main{
   font-family:'Helvetica Neue',Arial,sans-serif;
   font-size:clamp(32px,5vw,64px);
   font-weight:700;
   letter-spacing:.02em;
   color:#111;
-  transition:opacity .4s;
 }
 .intro-sub{
   font-family:'Noto Sans TC','Noto Sans SC',system-ui,sans-serif;
@@ -62,7 +73,6 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   font-weight:400;
   color:#333;
   letter-spacing:.06em;
-  transition:opacity .4s;
 }
 #tap-hint{
   position:absolute;bottom:48px;
@@ -73,30 +83,16 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 @keyframes hintPulse{
   0%,100%{opacity:.3} 50%{opacity:.9}
 }
-/* Full sequence:
-   0.0s  white bg visible, logo visible
-   0.0s  sound fires immediately on click
-   0.0s→1.0s  hold
-   1.0s→2.8s  zoom + fade out
-   3.2s  overlay gone                */
-@keyframes introAnim{
-  0%   { opacity:1; transform:scale(1)  }
-  30%  { opacity:1; transform:scale(1)  }
-  75%  { opacity:.5; transform:scale(6) }
-  100% { opacity:0; transform:scale(15);visibility:hidden }
-}
-@keyframes logoFadeIn{
-  from{opacity:0;transform:translateY(6px)}
-  to  {opacity:1;transform:translateY(0)}
-}
 </style>
 </head>
 <body>
 
 <!-- Intro overlay — click to start -->
 <div id="intro">
-  <div class="intro-main">CLUSTER &amp; Associates</div>
-  <div class="intro-sub">張立群建築師事務所｜集創國際室內裝修設計有限公司</div>
+  <div id="intro-logo">
+    <div class="intro-main">CLUSTER &amp; Associates</div>
+    <div class="intro-sub">張立群建築師事務所｜集創國際室內裝修設計有限公司</div>
+  </div>
   <div id="tap-hint">— tap anywhere —</div>
 </div>
 
@@ -186,12 +182,23 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
     if(fired) return;
     fired = true;
     var intro = document.getElementById('intro');
-    // Sound fires immediately on click (AudioContext now allowed)
-    playIntroSound();
-    // Start zoom animation
-    intro.classList.add('playing');
-    // Remove overlay after animation
-    setTimeout(function(){ if(intro) intro.remove(); }, 3300);
+    var logo  = document.getElementById('intro-logo');
+    var hint  = document.getElementById('tap-hint');
+
+    // Hide hint, start silent logo zoom
+    hint.style.display = 'none';
+    logo.classList.add('zoom');
+
+    // logoZoom lasts 1.6s → screen is all white → fire sound
+    setTimeout(function(){
+      playIntroSound();
+      // White bg fades out after brief hold (sound plays over fade)
+      setTimeout(function(){
+        intro.classList.add('bg-out');
+      }, 120);
+      // Remove from DOM after bg fade completes
+      setTimeout(function(){ intro.remove(); }, 900);
+    }, 1550);
   }
 
   document.getElementById('intro').addEventListener('click', startIntro);
