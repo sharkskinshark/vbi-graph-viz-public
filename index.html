@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>VBI · Graph Visualization</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -321,6 +323,11 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   document.getElementById('breath-btn').addEventListener('click', function(){
     if(fired) return;
     fired = true;
+
+    // Enter fullscreen (must be synchronous with user gesture)
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(function(){});
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 
     // Drum fires immediately on click
     sfx.currentTime = 0;
