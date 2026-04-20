@@ -211,14 +211,20 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   .card{width:min(320px,88vw)}
 }
 
-/* Page-exit veil — fades to dark on card click */
+/* Graph iframe — covers full screen without navigation */
+#graph-frame{
+  display:none;position:fixed;inset:0;border:none;
+  width:100%;height:100%;z-index:500;
+}
+
+/* Transition veil — fades to dark between states */
 #page-veil{
   position:fixed;inset:0;z-index:1000;
   background:#0a0b10;
   opacity:0;pointer-events:none;
-  transition:opacity .55s ease;
+  transition:opacity .5s ease;
 }
-#page-veil.active{ opacity:1; }
+#page-veil.active{ opacity:1;pointer-events:all; }
 </style>
 </head>
 <body>
@@ -231,7 +237,10 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   <div class="rp-text">請橫轉手機<br>Rotate to landscape</div>
 </div>
 
-<!-- Page-exit dark veil -->
+<!-- Graph iframe — no navigation, fullscreen stays intact -->
+<iframe id="graph-frame" title="Graph View"></iframe>
+
+<!-- Transition veil -->
 <div id="page-veil"></div>
 
 <!-- Persistent white underlay — covers dark landing page until fully revealed -->
@@ -280,20 +289,39 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 
 <script>
 (function(){
-  var veil = document.getElementById('page-veil');
+  var veil  = document.getElementById('page-veil');
+  var frame = document.getElementById('graph-frame');
 
-  // Reset veil + re-check rotation prompt on bfcache restore (back button)
+  // Reset veil on bfcache restore
   window.addEventListener('pageshow', function(){
     veil.classList.remove('active');
-    checkOrient();
+    if (typeof window._checkOrient === 'function') window._checkOrient();
   });
 
+  // 'home' message from graph page inside iframe — fade out iframe, show landing
+  window.addEventListener('message', function(e){
+    if (e.data !== 'home') return;
+    veil.classList.add('active');
+    setTimeout(function(){
+      frame.style.display = 'none';
+      frame.src = '';
+      veil.classList.remove('active');
+    }, 520);
+  });
+
+  // Card click: veil to dark → load graph in iframe → veil back to clear
   document.querySelectorAll('.card').forEach(function(card){
     card.addEventListener('click', function(e){
       e.preventDefault();
       var href = card.getAttribute('href');
       veil.classList.add('active');
-      setTimeout(function(){ window.location.href = href; }, 600);
+      setTimeout(function(){
+        frame.src = href;
+        frame.style.display = 'block';
+        frame.onload = function(){
+          setTimeout(function(){ veil.classList.remove('active'); }, 250);
+        };
+      }, 520);
     });
   });
 })();
@@ -318,6 +346,7 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
       rotateEl.style.display = 'none';
     }
   }
+  window._checkOrient = checkOrient; // exposed for pageshow listener
   window.addEventListener('resize', checkOrient);
   checkOrient();
 
