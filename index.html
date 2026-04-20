@@ -8,43 +8,74 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 /* ══════════════════════════════════════
-   PHASE 0 — Dark entry screen + breathing button
+   PHASE 0 — White entry screen + black breathing button
 ══════════════════════════════════════ */
 #entry{
   position:fixed;inset:0;z-index:999;
-  background:#07080d;
+  background:#fff;
   display:flex;align-items:center;justify-content:center;
 }
 
-/* Apple-style breathing button */
+/* Breathing button wrapper — needed for tooltip positioning */
+#btn-wrap{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Apple-style breathing button — black on white */
 #breath-btn{
-  width:64px;height:64px;border-radius:50%;
-  background:rgba(255,255,255,.08);
+  width:60px;height:60px;border-radius:50%;
+  background:#111;
   border:none;cursor:pointer;
   position:relative;outline:none;
   animation:breathe 3s ease-in-out infinite;
 }
 #breath-btn::before{
-  content:'';position:absolute;inset:-14px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.18) 0%,transparent 70%);
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,0,0,.12) 0%,transparent 70%);
   animation:breatheGlow 3s ease-in-out infinite;
 }
-#breath-btn::after{
-  content:'';position:absolute;inset:20px;border-radius:50%;
-  background:#fff;
-  animation:breatheCore 3s ease-in-out infinite;
-}
 @keyframes breathe{
-  0%,100%{transform:scale(.92);box-shadow:0 0 0 0 rgba(255,255,255,.06)}
-  50%    {transform:scale(1.06);box-shadow:0 0 32px 8px rgba(255,255,255,.1)}
+  0%,100%{transform:scale(.9); box-shadow:0 0 0 0 rgba(0,0,0,.08)}
+  50%    {transform:scale(1.08);box-shadow:0 0 28px 6px rgba(0,0,0,.12)}
 }
 @keyframes breatheGlow{
-  0%,100%{opacity:.3;transform:scale(.9)}
-  50%    {opacity:1; transform:scale(1.1)}
+  0%,100%{opacity:.2;transform:scale(.88)}
+  50%    {opacity:1; transform:scale(1.12)}
 }
-@keyframes breatheCore{
-  0%,100%{opacity:.5;transform:scale(.85)}
-  50%    {opacity:1; transform:scale(1)}
+
+/* "Tap Here" animated tooltip */
+#tap-label{
+  position:absolute;
+  top:calc(100% + 18px);
+  left:50%;transform:translateX(-50%);
+  white-space:nowrap;
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#999;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+#tap-label span{
+  display:inline-block;
+  opacity:0;
+  animation:none;
+}
+#btn-wrap:hover #tap-label{ opacity:1; }
+#btn-wrap:hover #tap-label span{
+  animation:letterDrop .4s ease forwards;
+}
+/* stagger each letter */
+#btn-wrap:hover #tap-label span:nth-child(1){animation-delay:.00s}
+#btn-wrap:hover #tap-label span:nth-child(2){animation-delay:.04s}
+#btn-wrap:hover #tap-label span:nth-child(3){animation-delay:.08s}
+#btn-wrap:hover #tap-label span:nth-child(4){animation-delay:.12s}
+#btn-wrap:hover #tap-label span:nth-child(5){animation-delay:.16s}
+#btn-wrap:hover #tap-label span:nth-child(6){animation-delay:.20s}
+#btn-wrap:hover #tap-label span:nth-child(7){animation-delay:.24s}
+#btn-wrap:hover #tap-label span:nth-child(8){animation-delay:.28s}
+@keyframes letterDrop{
+  from{opacity:0;transform:translateY(-6px)}
+  to  {opacity:1;transform:translateY(0)}
 }
 
 /* ══════════════════════════════════════
@@ -126,9 +157,14 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 </head>
 <body>
 
-<!-- Phase 0: breathing button -->
+<!-- Phase 0: breathing button on white -->
 <div id="entry">
-  <button id="breath-btn" aria-label="Enter"></button>
+  <div id="btn-wrap">
+    <button id="breath-btn" aria-label="Enter"></button>
+    <div id="tap-label">
+      <span>T</span><span>a</span><span>p</span><span>&nbsp;</span><span>H</span><span>e</span><span>r</span><span>e</span>
+    </div>
+  </div>
 </div>
 
 <!-- Phase 1: white splash + logo -->
@@ -174,34 +210,30 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
     if(fired) return;
     fired = true;
 
-    // Hide breathing button
-    entry.style.transition = 'opacity .3s';
-    entry.style.opacity = '0';
-    setTimeout(function(){ entry.remove(); }, 350);
+    // Drum fires immediately on click
+    sfx.currentTime = 0;
+    sfx.play().catch(function(){});
 
-    // Phase 1: white splash fades in
-    splash.style.pointerEvents = 'none';
+    // Entry (white bg + button) fades away — splash is also white so seamless
+    entry.style.transition = 'opacity .35s';
+    entry.style.opacity = '0';
+    setTimeout(function(){ entry.remove(); }, 380);
+
+    // Phase 1: splash (white) already visible — logo fades in
     splash.classList.add('fade-in');
 
-    // Phase 2: after logo text has appeared (0.9s), start silent zoom
+    // Phase 2: after logo text has settled, start silent zoom
     setTimeout(function(){
       logo.classList.add('zoom-out');
 
-      // Phase 3: logo fully gone → screen all white → drum fires
+      // Phase 3: logo gone → full white → fade to dark page
       setTimeout(function(){
-        sfx.currentTime = 0;
-        sfx.play().catch(function(){});
+        splash.classList.remove('fade-in');
+        splash.classList.add('fade-out');
+        setTimeout(function(){ splash.remove(); }, 800);
+      }, 1450);
 
-        // Phase 4: white fades out → landing page appears
-        setTimeout(function(){
-          splash.classList.remove('fade-in');
-          splash.classList.add('fade-out');
-          setTimeout(function(){ splash.remove(); }, 800);
-        }, 120);
-
-      }, 1450); // logoZoom duration
-
-    }, 900); // wait for text to appear
+    }, 900);
   });
 })();
 </script>
