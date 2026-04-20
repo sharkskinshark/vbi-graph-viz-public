@@ -157,6 +157,13 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
         opacity:0;animation:pageIn .7s ease forwards;animation-delay:.5s}
 @keyframes pageIn{to{opacity:1}}
 
+/* ── Responsive ── */
+@media(max-width:520px){
+  body{gap:28px;padding:0 16px}
+  .cards{flex-direction:column;align-items:center}
+  .card{width:min(320px,88vw)}
+}
+
 /* Page-exit veil — fades to dark on card click */
 #page-veil{
   position:fixed;inset:0;z-index:1000;
