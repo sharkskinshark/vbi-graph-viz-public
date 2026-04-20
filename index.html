@@ -41,47 +41,50 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   background:#fff;
   display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:10px;
-  animation:introAnim 3.2s cubic-bezier(.4,0,.2,1) forwards;
-  pointer-events:none;
+  cursor:pointer;
   transform-origin:center center;
 }
-
+#intro.playing{
+  animation:introAnim 3.2s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+}
 .intro-main{
   font-family:'Helvetica Neue',Arial,sans-serif;
   font-size:clamp(32px,5vw,64px);
   font-weight:700;
   letter-spacing:.02em;
   color:#111;
-  opacity:0;
-  animation:logoFadeIn .7s ease forwards;
-  animation-delay:.3s;
+  transition:opacity .4s;
 }
-
 .intro-sub{
   font-family:'Noto Sans TC','Noto Sans SC',system-ui,sans-serif;
   font-size:clamp(11px,1.4vw,16px);
   font-weight:400;
   color:#333;
   letter-spacing:.06em;
-  opacity:0;
-  animation:logoFadeIn .7s ease forwards;
-  animation-delay:.6s;
+  transition:opacity .4s;
 }
-
+#tap-hint{
+  position:absolute;bottom:48px;
+  font-size:11px;letter-spacing:.18em;color:#aaa;
+  text-transform:uppercase;
+  animation:hintPulse 1.8s ease-in-out infinite;
+}
+@keyframes hintPulse{
+  0%,100%{opacity:.3} 50%{opacity:.9}
+}
 /* Full sequence:
-   0.0s  white bg visible, logo hidden
-   0.3s  logo text starts fading in
-   0.6s  sub text fades in
-   1.2s  hold
-   2.2s  zoom + fade out begins
+   0.0s  white bg visible, logo visible
+   0.0s  sound fires immediately on click
+   0.0s→1.0s  hold
+   1.0s→2.8s  zoom + fade out
    3.2s  overlay gone                */
 @keyframes introAnim{
-  0%   { opacity:1; transform:scale(1)   }
-  37%  { opacity:1; transform:scale(1)   }   /* hold until 1.2s */
-  75%  { opacity:.6; transform:scale(5)  }   /* accelerating zoom */
-  100% { opacity:0; transform:scale(14); visibility:hidden }
+  0%   { opacity:1; transform:scale(1)  }
+  30%  { opacity:1; transform:scale(1)  }
+  75%  { opacity:.5; transform:scale(6) }
+  100% { opacity:0; transform:scale(15);visibility:hidden }
 }
-
 @keyframes logoFadeIn{
   from{opacity:0;transform:translateY(6px)}
   to  {opacity:1;transform:translateY(0)}
@@ -90,10 +93,11 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 </head>
 <body>
 
-<!-- Intro overlay -->
+<!-- Intro overlay — click to start -->
 <div id="intro">
   <div class="intro-main">CLUSTER &amp; Associates</div>
   <div class="intro-sub">張立群建築師事務所｜集創國際室內裝修設計有限公司</div>
+  <div id="tap-hint">— tap anywhere —</div>
 </div>
 
 <!-- Landing page content -->
@@ -119,104 +123,78 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 
 <script>
 (function(){
+  var fired = false;
+
   function playIntroSound(){
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    /* ── Taiko body: deep low thud ── */
-    const taikoOsc = ctx.createOscillator();
-    const taikoGain = ctx.createGain();
-    taikoOsc.type = 'sine';
-    taikoOsc.frequency.setValueAtTime(90, ctx.currentTime);
-    taikoOsc.frequency.exponentialRampToValueAtTime(38, ctx.currentTime + 0.25);
-    taikoGain.gain.setValueAtTime(2.2, ctx.currentTime);
-    taikoGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    taikoOsc.connect(taikoGain);
-    taikoGain.connect(ctx.destination);
-    taikoOsc.start(ctx.currentTime);
-    taikoOsc.stop(ctx.currentTime + 0.5);
+    // Taiko body — deep low thud
+    var tOsc = ctx.createOscillator(), tGain = ctx.createGain();
+    tOsc.type = 'sine';
+    tOsc.frequency.setValueAtTime(90, ctx.currentTime);
+    tOsc.frequency.exponentialRampToValueAtTime(38, ctx.currentTime + 0.25);
+    tGain.gain.setValueAtTime(2.2, ctx.currentTime);
+    tGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    tOsc.connect(tGain); tGain.connect(ctx.destination);
+    tOsc.start(); tOsc.stop(ctx.currentTime + 0.5);
 
-    /* ── Taiko skin: sharp attack noise burst ── */
-    const bufLen = Math.floor(ctx.sampleRate * 0.12);
-    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for(let i = 0; i < bufLen; i++)
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufLen, 2);
-    const noise = ctx.createBufferSource();
+    // Taiko skin — noise burst attack
+    var bufLen = Math.floor(ctx.sampleRate * 0.12);
+    var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for(var i=0;i<bufLen;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/bufLen,2);
+    var noise = ctx.createBufferSource();
     noise.buffer = buf;
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.value = 320;
-    noiseFilter.Q.value = 0.8;
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(1.4, ctx.currentTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
-    noise.start(ctx.currentTime);
+    var nf = ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=320; nf.Q.value=0.8;
+    var nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(1.4, ctx.currentTime);
+    nGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.12);
+    noise.connect(nf); nf.connect(nGain); nGain.connect(ctx.destination);
+    noise.start();
 
-    /* ── Kiai shout: sawtooth + formant filter ── */
-    const shoutOsc = ctx.createOscillator();
-    shoutOsc.type = 'sawtooth';
-    shoutOsc.frequency.setValueAtTime(160, ctx.currentTime + 0.04);
-    shoutOsc.frequency.exponentialRampToValueAtTime(105, ctx.currentTime + 0.55);
+    // Sub-bass rumble
+    var sub = ctx.createOscillator(), sGain = ctx.createGain();
+    sub.type='sine'; sub.frequency.value=48;
+    sGain.gain.setValueAtTime(1.8, ctx.currentTime);
+    sGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.35);
+    sub.connect(sGain); sGain.connect(ctx.destination);
+    sub.start(); sub.stop(ctx.currentTime+0.35);
 
-    // "AH" vowel formants F1+F2
-    const f1 = ctx.createBiquadFilter();
-    f1.type = 'bandpass';
-    f1.frequency.value = 750;
-    f1.Q.value = 3;
-    const f2 = ctx.createBiquadFilter();
-    f2.type = 'bandpass';
-    f2.frequency.value = 1100;
-    f2.Q.value = 4;
-
-    const shoutGain = ctx.createGain();
-    shoutGain.gain.setValueAtTime(0, ctx.currentTime);
-    shoutGain.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 0.07);
-    shoutGain.gain.setValueAtTime(0.55, ctx.currentTime + 0.28);
-    shoutGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-
-    // Slight vibrato for human feel
-    const vibrato = ctx.createOscillator();
-    vibrato.frequency.value = 5.5;
-    const vibratoGain = ctx.createGain();
-    vibratoGain.gain.value = 4;
-    vibrato.connect(vibratoGain);
-    vibratoGain.connect(shoutOsc.frequency);
-
-    shoutOsc.connect(f1);
-    shoutOsc.connect(f2);
-    f1.connect(shoutGain);
-    f2.connect(shoutGain);
-    shoutGain.connect(ctx.destination);
-
-    vibrato.start(ctx.currentTime + 0.04);
-    vibrato.stop(ctx.currentTime + 0.65);
-    shoutOsc.start(ctx.currentTime + 0.04);
-    shoutOsc.stop(ctx.currentTime + 0.65);
-
-    /* ── Sub-bass rumble for impact depth ── */
-    const sub = ctx.createOscillator();
-    const subGain = ctx.createGain();
-    sub.type = 'sine';
-    sub.frequency.value = 48;
-    subGain.gain.setValueAtTime(1.8, ctx.currentTime);
-    subGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-    sub.connect(subGain);
-    subGain.connect(ctx.destination);
-    sub.start(ctx.currentTime);
-    sub.stop(ctx.currentTime + 0.35);
+    // Kiai shout — sawtooth + AH formants + vibrato
+    var shOsc = ctx.createOscillator();
+    shOsc.type = 'sawtooth';
+    shOsc.frequency.setValueAtTime(155, ctx.currentTime+0.03);
+    shOsc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime+0.6);
+    var f1=ctx.createBiquadFilter(); f1.type='bandpass'; f1.frequency.value=750; f1.Q.value=3;
+    var f2=ctx.createBiquadFilter(); f2.type='bandpass'; f2.frequency.value=1100; f2.Q.value=4;
+    var shGain=ctx.createGain();
+    shGain.gain.setValueAtTime(0, ctx.currentTime);
+    shGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime+0.06);
+    shGain.gain.setValueAtTime(0.6, ctx.currentTime+0.28);
+    shGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.65);
+    var vib=ctx.createOscillator(), vGain=ctx.createGain();
+    vib.frequency.value=5.5; vGain.gain.value=4;
+    vib.connect(vGain); vGain.connect(shOsc.frequency);
+    shOsc.connect(f1); shOsc.connect(f2);
+    f1.connect(shGain); f2.connect(shGain);
+    shGain.connect(ctx.destination);
+    vib.start(ctx.currentTime+0.03); vib.stop(ctx.currentTime+0.7);
+    shOsc.start(ctx.currentTime+0.03); shOsc.stop(ctx.currentTime+0.7);
   }
 
-  // Sound fires at the moment zoom begins (1.2s into animation)
-  setTimeout(playIntroSound, 1200);
+  function startIntro(){
+    if(fired) return;
+    fired = true;
+    var intro = document.getElementById('intro');
+    // Sound fires immediately on click (AudioContext now allowed)
+    playIntroSound();
+    // Start zoom animation
+    intro.classList.add('playing');
+    // Remove overlay after animation
+    setTimeout(function(){ if(intro) intro.remove(); }, 3300);
+  }
 
-  // Remove overlay from DOM after animation ends
-  setTimeout(function(){
-    const el = document.getElementById('intro');
-    if(el) el.remove();
-  }, 3300);
+  document.getElementById('intro').addEventListener('click', startIntro);
 })();
 </script>
 </body>
