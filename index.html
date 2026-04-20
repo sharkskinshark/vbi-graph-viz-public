@@ -86,17 +86,15 @@
   background:#fff;
   display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:10px;
-  opacity:0;pointer-events:none;
+  opacity:1;pointer-events:none;
+  transform-origin:center center;
 }
-#splash.fade-in{ animation:splashIn .55s ease forwards; }
-@keyframes splashIn{ to{opacity:1} }
 
 #splash-logo{
   display:flex;flex-direction:column;align-items:center;gap:8px;
-  transform-origin:center center;
 }
-/* zoom OUT — text shrinks + fades, recedes into distance */
-#splash-logo.zoom-out{
+/* zoom OUT — whole white page + text recede into distance as one unit */
+#splash.zoom-out{
   animation:logoZoomOut 1.6s cubic-bezier(.4,0,.8,1) forwards;
 }
 @keyframes logoZoomOut{
@@ -122,9 +120,13 @@
   to  {opacity:1;transform:translateY(0)}
 }
 
-/* White bg slow fade to transparent → reveals dark page */
-#splash.fade-out{ animation:splashOut 1.4s ease forwards; }
-@keyframes splashOut{ to{opacity:0;pointer-events:none} }
+/* Persistent white underlay — fades after zoom-out completes, reveals dark page */
+#bg-white{
+  position:fixed;inset:0;z-index:996;
+  background:#fff;pointer-events:none;
+  opacity:1;transition:opacity 1.4s ease;
+}
+#bg-white.fade-out{ opacity:0; }
 
 /* ══════════════════════════════════════
    LANDING PAGE
@@ -157,6 +159,9 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 </style>
 </head>
 <body>
+
+<!-- Persistent white underlay — covers dark landing page until fully revealed -->
+<div id="bg-white"></div>
 
 <!-- Phase 0: breathing button on white -->
 <div id="entry">
@@ -201,11 +206,12 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 
 <script>
 (function(){
-  var fired = false;
-  var entry  = document.getElementById('entry');
-  var splash = document.getElementById('splash');
-  var logo   = document.getElementById('splash-logo');
-  var sfx    = document.getElementById('taiko-sfx');
+  var fired   = false;
+  var entry   = document.getElementById('entry');
+  var splash  = document.getElementById('splash');
+  var logo    = document.getElementById('splash-logo');
+  var bgWhite = document.getElementById('bg-white');
+  var sfx     = document.getElementById('taiko-sfx');
 
   document.getElementById('breath-btn').addEventListener('click', function(){
     if(fired) return;
@@ -215,24 +221,19 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
     sfx.currentTime = 0;
     sfx.play().catch(function(){});
 
-    // Entry (white bg + button) fades away — splash is also white so seamless
-    entry.style.transition = 'opacity .35s';
-    entry.style.opacity = '0';
-    setTimeout(function(){ entry.remove(); }, 380);
+    // Entry (white bg + button) removed instantly — splash is white and already
+    // fully opaque behind it, so there is no dark flash
+    entry.remove();
 
-    // Phase 1: splash (white) already visible — logo fades in
-    splash.classList.add('fade-in');
-
-    // Phase 2: logo text settled → zoom out + fade
+    // Phase 2: whole white page (bg + text) zooms out together as one unit
     setTimeout(function(){
-      logo.classList.add('zoom-out');
+      splash.classList.add('zoom-out');
 
-      // Phase 3: logo fully gone → white bg slowly fades to reveal dark page
+      // Phase 3: zoom-out done → hold 0.8s → white underlay fades to reveal dark page
       setTimeout(function(){
-        splash.classList.remove('fade-in');
-        splash.classList.add('fade-out');
-        setTimeout(function(){ splash.remove(); }, 1500);
-      }, 1600);
+        bgWhite.classList.add('fade-out');
+        setTimeout(function(){ splash.remove(); bgWhite.remove(); }, 1500);
+      }, 2500);
 
     }, 900);
   });
