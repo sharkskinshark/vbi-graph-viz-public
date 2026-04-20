@@ -8,6 +8,51 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 /* ══════════════════════════════════════
+   PHONE ROTATE PROMPT — portrait only
+══════════════════════════════════════ */
+#rotate-prompt{
+  position:fixed;inset:0;z-index:1002;
+  background:#fff;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:28px;
+}
+.rp-phone{
+  width:34px;height:60px;
+  border:3px solid #111;border-radius:8px;
+  position:relative;
+  animation:spinPhone 2.4s cubic-bezier(.4,0,.2,1) infinite;
+  transform-origin:center center;
+}
+.rp-phone::before{
+  content:'';position:absolute;
+  top:5px;left:50%;transform:translateX(-50%);
+  width:8px;height:2px;border-radius:2px;background:#111;
+}
+.rp-phone::after{
+  content:'';position:absolute;
+  bottom:5px;left:50%;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;background:#111;
+}
+@keyframes spinPhone{
+  0%,30%  {transform:rotate(0deg)}
+  65%,100%{transform:rotate(-90deg)}
+}
+.rp-arrow{
+  position:absolute;
+  /* curved arrow hint — pure CSS */
+  width:28px;height:28px;
+  border:2px solid #bbb;border-radius:50%;
+  border-right-color:transparent;border-bottom-color:transparent;
+  top:-18px;right:-22px;
+  animation:spinPhone 2.4s cubic-bezier(.4,0,.2,1) infinite;
+}
+.rp-text{
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:#999;text-align:center;line-height:2.2;
+}
+
+/* ══════════════════════════════════════
    PHASE 0 — White entry screen + black breathing button
 ══════════════════════════════════════ */
 #entry{
@@ -176,6 +221,14 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 </head>
 <body>
 
+<!-- Phone rotate prompt — portrait on mobile only -->
+<div id="rotate-prompt">
+  <div style="position:relative">
+    <div class="rp-phone"></div>
+  </div>
+  <div class="rp-text">請橫轉手機<br>Rotate to landscape</div>
+</div>
+
 <!-- Page-exit dark veil -->
 <div id="page-veil"></div>
 
@@ -251,6 +304,19 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
   var logo    = document.getElementById('splash-logo');
   var bgWhite = document.getElementById('bg-white');
   var sfx     = document.getElementById('taiko-sfx');
+
+  // Phone rotate prompt — only for small-screen touch devices (not iPad)
+  var rotateEl = document.getElementById('rotate-prompt');
+  var isPhone  = ('ontouchstart' in window) && Math.min(screen.width, screen.height) <= 430;
+  function checkOrient() {
+    if (!fired && isPhone && window.innerHeight > window.innerWidth) {
+      rotateEl.style.display = 'flex';
+    } else {
+      rotateEl.style.display = 'none';
+    }
+  }
+  window.addEventListener('resize', checkOrient);
+  checkOrient();
 
   document.getElementById('breath-btn').addEventListener('click', function(){
     if(fired) return;
