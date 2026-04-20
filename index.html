@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VBI · Graph Visualization</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:column;
+     align-items:center;justify-content:center;gap:48px;
+     font-family:'Noto Sans TC',system-ui,sans-serif}
+.title{text-align:center}
+.title h1{font-size:22px;font-weight:800;letter-spacing:.04em;margin-bottom:6px}
+.title p{font-size:11px;color:rgba(255,255,255,.28);letter-spacing:.06em}
+.cards{display:flex;gap:24px}
+.card{width:220px;padding:28px 24px;border-radius:12px;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+      cursor:pointer;text-decoration:none;color:#fff;
+      transition:all .22s;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);
+            transform:translateY(-3px)}
+.card-badge{font-size:9px;font-weight:800;letter-spacing:.08em;padding:3px 8px;
+            border-radius:4px;text-transform:uppercase}
+.c3d .card-badge{background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44}
+.c2d .card-badge{background:#0e7490aa;color:#22d3ee;border:1px solid #0e749044}
+.card h2{font-size:15px;font-weight:800}
+.card p{font-size:11px;color:rgba(255,255,255,.38);line-height:1.65}
+.arrow{margin-top:4px;font-size:18px;color:rgba(255,255,255,.2);transition:all .22s}
+.card:hover .arrow{color:#fff;transform:translateX(4px)}
+.credit{font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.04em;position:fixed;bottom:20px}
+</style>
+</head>
+<body>
+<div class="title">
+  <h1>VBI · Graph Visualization Engine</h1>
+  <p>SERVICE MANAGEMENT SYSTEM · ARCHITECTURE VIEW</p>
+</div>
+<div class="cards">
+  <a class="card c3d" href="vbi-pulse-graph-3d.html">
+    <span class="card-badge">3D View</span>
+    <h2>3D Architecture Graph</h2>
+    <p>Interactive three-dimensional node graph with fly-to navigation and bloom rendering.</p>
+    <span class="arrow">→</span>
+  </a>
+  <a class="card c2d" href="vbi-pulse-graph.html">
+    <span class="card-badge">2D View</span>
+    <h2>2D Pulse Graph</h2>
+    <p>Force-directed graph with path highlighting, timeline, and cost tracking modules.</p>
+    <span class="arrow">→</span>
+  </a>
+</div>
+<span class="credit">張立群建築師事務所 ｜ CLUSTER & Associates · All Rights Reserved</span>
+</body>
+</html>
