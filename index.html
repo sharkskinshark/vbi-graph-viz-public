@@ -7,14 +7,103 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
-/* ── Main landing page ── */
+/* ══════════════════════════════════════
+   PHASE 0 — Dark entry screen + breathing button
+══════════════════════════════════════ */
+#entry{
+  position:fixed;inset:0;z-index:999;
+  background:#07080d;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Apple-style breathing button */
+#breath-btn{
+  width:64px;height:64px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+  border:none;cursor:pointer;
+  position:relative;outline:none;
+  animation:breathe 3s ease-in-out infinite;
+}
+#breath-btn::before{
+  content:'';position:absolute;inset:-14px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.18) 0%,transparent 70%);
+  animation:breatheGlow 3s ease-in-out infinite;
+}
+#breath-btn::after{
+  content:'';position:absolute;inset:20px;border-radius:50%;
+  background:#fff;
+  animation:breatheCore 3s ease-in-out infinite;
+}
+@keyframes breathe{
+  0%,100%{transform:scale(.92);box-shadow:0 0 0 0 rgba(255,255,255,.06)}
+  50%    {transform:scale(1.06);box-shadow:0 0 32px 8px rgba(255,255,255,.1)}
+}
+@keyframes breatheGlow{
+  0%,100%{opacity:.3;transform:scale(.9)}
+  50%    {opacity:1; transform:scale(1.1)}
+}
+@keyframes breatheCore{
+  0%,100%{opacity:.5;transform:scale(.85)}
+  50%    {opacity:1; transform:scale(1)}
+}
+
+/* ══════════════════════════════════════
+   PHASE 1 — White screen + black logo
+══════════════════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:998;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:10px;
+  opacity:0;pointer-events:none;
+}
+#splash.fade-in{ animation:splashIn .55s ease forwards; }
+@keyframes splashIn{ to{opacity:1} }
+
+#splash-logo{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  transform-origin:center center;
+}
+#splash-logo.zoom-out{
+  animation:logoZoom 1.5s cubic-bezier(.22,0,.9,1) forwards;
+}
+@keyframes logoZoom{
+  0%  {opacity:1;transform:scale(1)}
+  55% {opacity:.5;transform:scale(4.5)}
+  100%{opacity:0;transform:scale(13)}
+}
+
+.splash-main{
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:clamp(30px,4.5vw,60px);
+  font-weight:700;letter-spacing:.02em;color:#111;
+  opacity:0;animation:textIn .45s ease forwards;animation-delay:.35s;
+}
+.splash-sub{
+  font-family:'Noto Sans TC','Noto Sans SC',system-ui,sans-serif;
+  font-size:clamp(10px,1.3vw,15px);
+  font-weight:400;letter-spacing:.06em;color:#444;
+  opacity:0;animation:textIn .45s ease forwards;animation-delay:.6s;
+}
+@keyframes textIn{
+  from{opacity:0;transform:translateY(5px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+
+/* White bg fades out after drum hit */
+#splash.fade-out{ animation:splashOut .75s ease forwards; }
+@keyframes splashOut{ to{opacity:0;pointer-events:none} }
+
+/* ══════════════════════════════════════
+   LANDING PAGE
+══════════════════════════════════════ */
 body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:column;
      align-items:center;justify-content:center;gap:48px;
      font-family:'Noto Sans TC',system-ui,sans-serif}
-.title{text-align:center;opacity:0;animation:pageIn .8s ease forwards;animation-delay:3.4s}
+.title{text-align:center;opacity:0;animation:pageIn .7s ease forwards;animation-delay:.2s}
 .title h1{font-size:22px;font-weight:800;letter-spacing:.04em;margin-bottom:6px}
 .title p{font-size:11px;color:rgba(255,255,255,.28);letter-spacing:.06em}
-.cards{display:flex;gap:24px;opacity:0;animation:pageIn .8s ease forwards;animation-delay:3.6s}
+.cards{display:flex;gap:24px;opacity:0;animation:pageIn .7s ease forwards;animation-delay:.4s}
 .card{width:220px;padding:28px 24px;border-radius:12px;
       background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
       cursor:pointer;text-decoration:none;color:#fff;
@@ -31,72 +120,26 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 .card:hover .arrow{color:#fff;transform:translateX(4px)}
 .credit{font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.04em;
         position:fixed;bottom:20px;
-        opacity:0;animation:pageIn .8s ease forwards;animation-delay:3.7s}
-
+        opacity:0;animation:pageIn .7s ease forwards;animation-delay:.5s}
 @keyframes pageIn{to{opacity:1}}
-
-/* ── Intro overlay ── */
-#intro{
-  position:fixed;inset:0;z-index:999;
-  background:#fff;
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:10px;
-  cursor:pointer;
-  transition:opacity .7s ease;
-}
-#intro.bg-out{ opacity:0; pointer-events:none; }
-
-/* Logo wrapper — zooms on click */
-#intro-logo{
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  transform-origin:center center;
-}
-#intro-logo.zoom{
-  animation:logoZoom 1.6s cubic-bezier(.4,0,1,1) forwards;
-}
-@keyframes logoZoom{
-  0%  { opacity:1; transform:scale(1)  }
-  60% { opacity:.6; transform:scale(5) }
-  100%{ opacity:0; transform:scale(14) }
-}
-
-.intro-main{
-  font-family:'Helvetica Neue',Arial,sans-serif;
-  font-size:clamp(32px,5vw,64px);
-  font-weight:700;
-  letter-spacing:.02em;
-  color:#111;
-}
-.intro-sub{
-  font-family:'Noto Sans TC','Noto Sans SC',system-ui,sans-serif;
-  font-size:clamp(11px,1.4vw,16px);
-  font-weight:400;
-  color:#333;
-  letter-spacing:.06em;
-}
-#tap-hint{
-  position:absolute;bottom:48px;
-  font-size:11px;letter-spacing:.18em;color:#aaa;
-  text-transform:uppercase;
-  animation:hintPulse 1.8s ease-in-out infinite;
-}
-@keyframes hintPulse{
-  0%,100%{opacity:.3} 50%{opacity:.9}
-}
 </style>
 </head>
 <body>
 
-<!-- Intro overlay — click to start -->
-<div id="intro">
-  <div id="intro-logo">
-    <div class="intro-main">CLUSTER &amp; Associates</div>
-    <div class="intro-sub">張立群建築師事務所｜集創國際室內裝修設計有限公司</div>
-  </div>
-  <div id="tap-hint">— tap anywhere —</div>
+<!-- Phase 0: breathing button -->
+<div id="entry">
+  <button id="breath-btn" aria-label="Enter"></button>
 </div>
 
-<!-- Landing page content -->
+<!-- Phase 1: white splash + logo -->
+<div id="splash">
+  <div id="splash-logo">
+    <div class="splash-main">CLUSTER &amp; Associates</div>
+    <div class="splash-sub">張立群建築師事務所｜集創國際室內裝修設計有限公司</div>
+  </div>
+</div>
+
+<!-- Landing page -->
 <div class="title">
   <h1>VBI · Graph Visualization Engine</h1>
   <p>SERVICE MANAGEMENT SYSTEM · ARCHITECTURE VIEW</p>
@@ -117,91 +160,49 @@ body{background:#0a0b10;color:#fff;height:100vh;display:flex;flex-direction:colu
 </div>
 <span class="credit">張立群建築師事務所 ｜ CLUSTER & Associates · All Rights Reserved</span>
 
+<audio id="taiko-sfx" src="taiko.mp3" preload="auto"></audio>
+
 <script>
 (function(){
   var fired = false;
+  var entry  = document.getElementById('entry');
+  var splash = document.getElementById('splash');
+  var logo   = document.getElementById('splash-logo');
+  var sfx    = document.getElementById('taiko-sfx');
 
-  function playIntroSound(){
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Taiko body — deep low thud
-    var tOsc = ctx.createOscillator(), tGain = ctx.createGain();
-    tOsc.type = 'sine';
-    tOsc.frequency.setValueAtTime(90, ctx.currentTime);
-    tOsc.frequency.exponentialRampToValueAtTime(38, ctx.currentTime + 0.25);
-    tGain.gain.setValueAtTime(2.2, ctx.currentTime);
-    tGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    tOsc.connect(tGain); tGain.connect(ctx.destination);
-    tOsc.start(); tOsc.stop(ctx.currentTime + 0.5);
-
-    // Taiko skin — noise burst attack
-    var bufLen = Math.floor(ctx.sampleRate * 0.12);
-    var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-    var data = buf.getChannelData(0);
-    for(var i=0;i<bufLen;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/bufLen,2);
-    var noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    var nf = ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=320; nf.Q.value=0.8;
-    var nGain = ctx.createGain();
-    nGain.gain.setValueAtTime(1.4, ctx.currentTime);
-    nGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.12);
-    noise.connect(nf); nf.connect(nGain); nGain.connect(ctx.destination);
-    noise.start();
-
-    // Sub-bass rumble
-    var sub = ctx.createOscillator(), sGain = ctx.createGain();
-    sub.type='sine'; sub.frequency.value=48;
-    sGain.gain.setValueAtTime(1.8, ctx.currentTime);
-    sGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.35);
-    sub.connect(sGain); sGain.connect(ctx.destination);
-    sub.start(); sub.stop(ctx.currentTime+0.35);
-
-    // Kiai shout — sawtooth + AH formants + vibrato
-    var shOsc = ctx.createOscillator();
-    shOsc.type = 'sawtooth';
-    shOsc.frequency.setValueAtTime(155, ctx.currentTime+0.03);
-    shOsc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime+0.6);
-    var f1=ctx.createBiquadFilter(); f1.type='bandpass'; f1.frequency.value=750; f1.Q.value=3;
-    var f2=ctx.createBiquadFilter(); f2.type='bandpass'; f2.frequency.value=1100; f2.Q.value=4;
-    var shGain=ctx.createGain();
-    shGain.gain.setValueAtTime(0, ctx.currentTime);
-    shGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime+0.06);
-    shGain.gain.setValueAtTime(0.6, ctx.currentTime+0.28);
-    shGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.65);
-    var vib=ctx.createOscillator(), vGain=ctx.createGain();
-    vib.frequency.value=5.5; vGain.gain.value=4;
-    vib.connect(vGain); vGain.connect(shOsc.frequency);
-    shOsc.connect(f1); shOsc.connect(f2);
-    f1.connect(shGain); f2.connect(shGain);
-    shGain.connect(ctx.destination);
-    vib.start(ctx.currentTime+0.03); vib.stop(ctx.currentTime+0.7);
-    shOsc.start(ctx.currentTime+0.03); shOsc.stop(ctx.currentTime+0.7);
-  }
-
-  function startIntro(){
+  document.getElementById('breath-btn').addEventListener('click', function(){
     if(fired) return;
     fired = true;
-    var intro = document.getElementById('intro');
-    var logo  = document.getElementById('intro-logo');
-    var hint  = document.getElementById('tap-hint');
 
-    // Hide hint, start silent logo zoom
-    hint.style.display = 'none';
-    logo.classList.add('zoom');
+    // Hide breathing button
+    entry.style.transition = 'opacity .3s';
+    entry.style.opacity = '0';
+    setTimeout(function(){ entry.remove(); }, 350);
 
-    // logoZoom lasts 1.6s → screen is all white → fire sound
+    // Phase 1: white splash fades in
+    splash.style.pointerEvents = 'none';
+    splash.classList.add('fade-in');
+
+    // Phase 2: after logo text has appeared (0.9s), start silent zoom
     setTimeout(function(){
-      playIntroSound();
-      // White bg fades out after brief hold (sound plays over fade)
-      setTimeout(function(){
-        intro.classList.add('bg-out');
-      }, 120);
-      // Remove from DOM after bg fade completes
-      setTimeout(function(){ intro.remove(); }, 900);
-    }, 1550);
-  }
+      logo.classList.add('zoom-out');
 
-  document.getElementById('intro').addEventListener('click', startIntro);
+      // Phase 3: logo fully gone → screen all white → drum fires
+      setTimeout(function(){
+        sfx.currentTime = 0;
+        sfx.play().catch(function(){});
+
+        // Phase 4: white fades out → landing page appears
+        setTimeout(function(){
+          splash.classList.remove('fade-in');
+          splash.classList.add('fade-out');
+          setTimeout(function(){ splash.remove(); }, 800);
+        }, 120);
+
+      }, 1450); // logoZoom duration
+
+    }, 900); // wait for text to appear
+  });
 })();
 </script>
 </body>
